@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing Style Matcher Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .game-section {
+            display: none;
+        }
+        
+        .game-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .intro-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .intro-section h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        .intro-section p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .passage-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .passage-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            font-style: italic;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option-btn {
+            padding: 20px;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 1rem;
+            position: relative;
+        }
+        
+        .option-btn:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .option-btn:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+        
+        .option-btn.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+        
+        .option-btn.correct {
+            border-color: #28a745;
+            background: #d4edda;
+            animation: correctPulse 0.5s ease;
+        }
+        
+        .option-btn.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+            animation: shake 0.5s ease;
+        }
+        
+        .option-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .feedback {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feedback.correct {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+        
+        .feedback.incorrect {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .feedback strong {
+            font-size: 1.1rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:focus {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .progress-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        
+        .results-section {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .results-section h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+        }
+        
+        .performance-message {
+            font-size: 1.3rem;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            font-size: 3rem;
+            margin: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .score-board {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" role="main">
+        <header class="header">
+            <h1>Writing Style Matcher</h1>
+            <p>Match passages to their creative writing styles</p>
+            <div class="score-board" role="status" aria-live="polite">
+                <div class="score-item">
+                    <div class="score-label">Question</div>
+                    <div class="score-value" id="currentQuestion">0/10</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Score</div>
+                    <div class="score-value" id="currentScore">0</div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="content">
+            <!-- Intro Section -->
+            <section id="introSection" class="game-section active intro-section">
+                <h2>Welcome to the Writing Style Matcher!</h2>
+                <p>Test your understanding of creative writing styles by reading passages and identifying the key style elements used.</p>
+                <p>You'll encounter 10 different passages. Each one showcases a different aspect of creative writing style including voice, tone, diction, syntax, and more.</p>
+                <div class="btn-container">
+                    <button class="btn btn-primary" id="startBtn" aria-label="Start the game">
+                        Start Game
+                    </button>
+                </div>
+            </section>
+            
+            <!-- Game Section -->
+            <section id="gameSection" class="game-section">
+                <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                
+                <div class="passage-card">
+                    <div class="passage-text" id="passageText"></div>
+                    <div class="question" id="questionText"></div>
+                    
+                    <div class="options" id="optionsContainer" role="radiogroup" aria-label="Answer options"></div>
+                    
+                    <div class="feedback" id="feedback" role="alert" aria-live="assertive"></div>
+                    
+                    <div class="btn-container">
+                        <button class="btn btn-primary" id="submitBtn" disabled aria-label="Submit your answer">
+                            Submit Answer
+                        </button>
+                        <button class="btn btn-secondary" id="nextBtn" style="display: none;" aria-label="Go to next question">
+                            Next Question
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Results Section -->
+            <section id="resultsSection" class="game-section results-section">
+                <h2>Game Complete!</h2>
+                <div class="badge" id="badgeEmoji" role="img" aria-label="Achievement badge"></div>
+                <div class="score-display" id="finalScore"></div>
+                <div class="performance-message" id="performanceMessage"></div>
+                <div class="btn-container">
+                    <button class="btn btn-primary" id="restartBtn" aria-label="Play again">
+                        Play Again
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <script>
+        const questions = [
+            {
+                passage: "The door creaked. Sarah entered. The room was dark. She flipped the switch. Nothing happened.",
+                question: "What writing technique is primarily demonstrated here?",
+                options: [
+                    "Short, punchy syntax creating tension and urgency",
+                    "Long, flowing sentences with complex descriptions",
+                    "Metaphorical language and symbolism",
+                    "First-person emotional introspection"
+                ],
+                correct: 0,
+                explanation: "This passage uses very short, simple sentences (syntax) to create a sense of tension and quick pacing. Each sentence is a single action or observation, making the reader feel the urgency of the moment."
+            },
+            {
+                passage: "As the amber sun melted into the horizon, painting the sky in shades of coral and gold, Emma felt the weight of the day slowly dissolve into the evening breeze that whispered through the rustling leaves.",
+                question: "What style element is most prominent?",
+                options: [
+                    "Casual, conversational tone",
+                    "Rich imagery and sensory description",
+                    "Satirical voice",
+                    "Technical, formal diction"
+                ],
+                correct: 1,
+                explanation: "This passage is filled with vivid imagery that appeals to multiple senses: visual ('amber sun,' 'coral and gold'), tactile ('evening breeze'), and auditory ('whispered,' 'rustling leaves'). This creates a rich, immersive experience."
+            },
+            {
+                passage: "Listen, mate, I'm not saying the plan was perfect, but it was better than sitting around doing nothing, yeah?",
+                question: "What best describes the voice in this passage?",
+                options: [
+                    "Formal and academic",
+                    "Informal and conversational",
+                    "Poetic and lyrical",
+                    "Detached and clinical"
+                ],
+                correct: 1,
+                explanation: "The use of 'mate,' 'yeah,' and the casual phrasing ('I'm not saying...') creates an informal, conversational voice. This sounds like someone speaking casually to a friend, not writing formally."
+            },
+            {
+                passage: "The corporate synergy facilitated optimal outcomes through strategic alignment of key stakeholders and leveraging of core competencies.",
+                question: "What type of diction is used here?",
+                options: [
+                    "Simple, everyday language",
+                    "Jargon-heavy, formal business language",
+                    "Poetic, metaphorical language",
+                    "Slang and colloquialisms"
+                ],
+                correct: 1,
+                explanation: "This passage uses formal business jargon ('synergy,' 'stakeholders,' 'core competencies'). The diction (word choice) is technical and corporate, which would be appropriate for a business report but not for casual storytelling."
+            },
+            {
+                passage: "Once upon a time, in a land far away, there lived a brave little mouse named Pip. Pip loved adventures and always helped his friends.",
+                question: "What audience and purpose does this style serve?",
+                options: [
+                    "Adult literary fiction",
+                    "Children's storytelling",
+                    "Academic writing",
+                    "News reporting"
+                ],
+                correct: 1,
+                explanation: "The simple sentence structure, clear narrative, positive tone, and traditional opening ('Once upon a time') all indicate this is children's storytelling. The style is age-appropriate with straightforward language and a friendly character."
+            },
+            {
+                passage: "Life is like a box of chocolates, never knowing what you're gonna get. Time is a thief that steals our moments. Love is a battlefield.",
+                question: "What figurative language technique is being used?",
+                options: [
+                    "Literal description",
+                    "Metaphors and similes",
+                    "Technical terminology",
+                    "Chronological narrative"
+                ],
+                correct: 1,
+                explanation: "This passage uses multiple metaphors ('Time is a thief,' 'Love is a battlefield') and a simile ('Life is like a box of chocolates') to make abstract concepts more concrete and relatable through comparison."
+            },
+            {
+                passage: "The witness stated that the incident occurred at approximately 3:47 PM. According to official records, the vehicle was traveling northbound on Main Street.",
+                question: "What tone is conveyed?",
+                options: [
+                    "Emotional and personal",
+                    "Humorous and light",
+                    "Formal and factual",
+                    "Suspenseful and mysterious"
+                ],
+                correct: 2,
+                explanation: "The tone is formal and factual, appropriate for news reporting or official documentation. The language is precise ('approximately 3:47 PM'), objective, and focused on verifiable facts without emotional language."
+            },
+            {
+                passage: "I couldn't believe what I was seeing. My heart pounded in my chest. Every fiber of my being screamed at me to run, but my feet felt glued to the ground.",
+                question: "What narrative perspective is used?",
+                options: [
+                    "Third-person omniscient",
+                    "First-person with emotional immediacy",
+                    "Second-person direct address",
+                    "Third-person limited"
+                ],
+                correct: 1,
+                explanation: "This uses first-person perspective ('I,' 'my') with strong emotional immediacy. The reader experiences the narrator's internal thoughts and feelings directly, creating a personal and intimate connection with the character's fear."
+            },
+            {
+                passage: "Politicians promise change. Voters believe them. Time passes. Nothing changes. The cycle repeats.",
+                question: "What creates the impact of this passage?",
+                options: [
+                    "Detailed descriptive imagery",
+                    "Repetitive syntax and cynical tone",
+                    "Optimistic, encouraging voice",
+                    "Complex, multi-clause sentences"
+                ],
+                correct: 1,
+                explanation: "The repetitive, short syntax pattern creates a rhythmic, almost hypnotic effect. Combined with a cynical tone about political promises, it emphasizes the frustrating, unchanging nature of the cycle being described."
+            },
+            {
+                passage: "Dr. Chen examined the specimen under optimal laboratory conditions, maintaining strict adherence to established protocols and documenting all observable phenomena with precision.",
+                question: "What writing style is this?",
+                options: [
+                    "Creative narrative style",
+                    "Scientific, objective style",
+                    "Persuasive, emotional style",
+                    "Casual blog style"
+                ],
+                correct: 1,
+                explanation: "This demonstrates scientific writing style: objective tone, formal diction ('specimen,' 'protocols,' 'phenomena'), passive constructions, and focus on procedures and accuracy rather than entertainment or emotion."
+            }
+        ];
+        
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOption = null;
+        
+        const sections = {
+            intro: document.getElementById('introSection'),
+            game: document.getElementById('gameSection'),
+            results: document.getElementById('resultsSection')
+        };
+        
+        function showSection(sectionName) {
+            Object.values(sections).forEach(section => section.classList.remove('active'));
+            sections[sectionName].classList.add('active');
+        }
+        
+        function updateScoreboard() {
+            document.getElementById('currentQuestion').textContent = `${currentQuestionIndex + 1}/10`;
+            document.getElementById('currentScore').textContent = score;
+            
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressFill').parentElement.setAttribute('aria-valuenow', progress);
+        }
+        
+        function loadQuestion() {
+            const question = questions[currentQuestionIndex];
+            selectedOption = null;
+            
+            document.getElementById('passageText').textContent = question.passage;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const feedback = document.getElementById('feedback');
+            feedback.classList.remove('show', 'correct', 'incorrect');
+            feedback.innerHTML = '';
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'none';
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-btn';
+                optionBtn.textContent = option;
+                optionBtn.setAttribute('role', 'radio');
+                optionBtn.setAttribute('aria-checked', 'false');
+                optionBtn.setAttribute('tabindex', '0');
+                
+                optionBtn.addEventListener('click', () => selectOption(index, optionBtn));
+                optionBtn.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectOption(index, optionBtn);
+                    }
+                });
+                
+                optionsContainer.appendChild(optionBtn);
+            });
+            
+            updateScoreboard();
+        }
+        
+        function selectOption(index, button) {
+            if (document.querySelector('.option-btn.disabled')) return;
+            
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                btn.setAttribute('aria-checked', 'false');
+            });
+            
+            button.classList.add('selected');
+            button.setAttribute('aria-checked', 'true');
+            selectedOption = index;
+            document.getElementById('submitBtn').disabled = false;
+        }
+        
+        function submitAnswer() {
+            if (selectedOption === null) return;
+            
+            const question = questions[currentQuestionIndex];
+            const isCorrect = selectedOption === question.correct;
+            
+            document.querySelectorAll('.option-btn').forEach((btn, index) => {
+                btn.classList.add('disabled');
+                if (index === question.correct) {
+                    btn.classList.add('correct');
+                } else if (index === selectedOption && !isCorrect) {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = isCorrect 
+                ? `<strong>✓ Correct!</strong> ${question.explanation}`
+                : `<strong>✗ Not quite.</strong> ${question.explanation}`;
+            feedback.className = `feedback show ${isCorrect ? 'correct' : 'incorrect'}`;
+            
+            if (isCorrect) score++;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            submitBtn.disabled = true;
+            submitBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+            
+            updateScoreboard();
+        }
+        
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+        
+        function showResults() {
+            showSection('results');
+            
+            const percentage = (score / questions.length) * 100;
+            let badge, message;
+            
+            if (percentage === 100) {
+                badge = '🏆';
+                message = 'Perfect Score! You have an excellent understanding of creative writing styles!';
+            } else if (percentage >= 80) {
+                badge = '⭐';
+                message = 'Great work! You have a strong grasp of writing style concepts.';
+            } else if (percentage >= 60) {
+                badge = '👍';
+                message = 'Good effort! You understand the basics. Review the feedback to strengthen your knowledge.';
+            } else {
+                badge = '📚';
+                message = 'Keep learning! Review the lesson material and try again to improve your understanding.';
+            }
+            
+            document.getElementById('badgeEmoji').textContent = badge;
+            document.getElementById('finalScore').textContent = `${score}/${questions.length}`;
+            document.getElementById('performanceMessage').textContent = message;
+        }
+        
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            showSection('intro');
+        }
+        
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', () => {
+            showSection('game');
+            loadQuestion();
+        });
+        
+        document.getElementById('submitBtn').addEventListener('click', submitAnswer);
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+    </script>
+</body>
+</html>
